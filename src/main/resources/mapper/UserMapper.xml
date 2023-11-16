@@ -3,10 +3,10 @@
 <mapper namespace="cn.wule.requestsecurity.dao.UserDao">
 
     <select id="getUserById" resultType="User">
-        select * from users where user_id = #{userId}
+        select * from user where user_id = #{userId};
     </select>
 
-    <select id="getUserByUsername" resultType="User">
-        select * from users where user_name = #{userName}
+    <select id="getUserByUserName" resultType="User">
+        select * from user where user_name = #{userName};
     </select>
 </mapper>

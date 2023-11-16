@@ -22,5 +22,5 @@ public interface UserDao
      * @param userName 用户名
      * @return 用户信息
      */
-    User getUserByUsername(@Param("userName") String userName);
+    User getUserByUserName(@Param("userName") String userName);
 }

@@ -18,13 +18,15 @@ import java.util.Objects;
 public class UserSecurity implements UserDetails
 {
     private final User user;
-    public UserSecurity(User user) {
+    private final Collection<? extends GrantedAuthority> authorities;
+    public UserSecurity(User user, Collection<? extends GrantedAuthority> authorities) {
         this.user = user;
+        this.authorities = authorities;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return authorities;
     }
 
     @Override
