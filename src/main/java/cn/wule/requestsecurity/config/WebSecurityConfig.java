@@ -1,6 +1,7 @@
 package cn.wule.requestsecurity.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/10 23:01
 
+import cn.wule.requestsecurity.filter.ValidateCodeFilter;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,10 +9,14 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -19,8 +24,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
  * @author wule
  */
 @Configuration
-@EnableMethodSecurity(securedEnabled = true)
-public class WebSecurityConfig {
+@EnableWebSecurity
+public class WebSecurityConfig{
     @Resource
     private AppAuthenticationSuccessHandler appAuthenticationSuccessHandler;
     @Resource
@@ -29,10 +34,15 @@ public class WebSecurityConfig {
     private AppLogoutSuccessHandler appLogoutSuccessHandler;
     @Resource
     private AppAccessDenyHandler appAccessDenyHandler;
+    @Resource
+    private ValidateCodeFilter validateCodeFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        //在用户名密码认证过滤器前添加过滤器
+        http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class);
         http.authorizeHttpRequests((authorize) -> authorize
+                .requestMatchers("/captcha").permitAll()
                 .requestMatchers("/root/**").hasAuthority("root:all")
                 .requestMatchers("/user/add").hasAuthority("user:add")
                 .requestMatchers("/user/delete").hasAuthority("user:del")
@@ -53,6 +63,7 @@ public class WebSecurityConfig {
                         .logoutSuccessUrl("/login/toLogin") //退出登录状态后的接口
                         .permitAll());
         http.exceptionHandling((exceptionHandling) -> exceptionHandling.accessDeniedHandler(appAccessDenyHandler));
+
         http.csrf(AbstractHttpConfigurer::disable);
         //禁止同源保护
         return http.build();
@@ -62,4 +73,9 @@ public class WebSecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
+
+    /*@Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers("/ignore1", "/ignore2");
+    }*/
 }
