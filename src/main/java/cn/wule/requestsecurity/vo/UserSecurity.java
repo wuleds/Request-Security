@@ -4,6 +4,7 @@ package cn.wule.requestsecurity.vo;
 import cn.wule.requestsecurity.model.User;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,6 +18,7 @@ import java.util.Objects;
 @Builder
 public class UserSecurity implements UserDetails
 {
+    @Getter
     private final User user;
     private final Collection<? extends GrantedAuthority> authorities;
     public UserSecurity(User user, Collection<? extends GrantedAuthority> authorities) {
