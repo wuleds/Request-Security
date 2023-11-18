@@ -29,7 +29,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     private Gson gson;
     @Resource
     private JWTUtil jwtUtil;
-
+    
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         //从认证信息中获取用户信息
@@ -39,6 +39,5 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         //获取权限信息
         List<SimpleGrantedAuthority> authorities = (List<SimpleGrantedAuthority>) userSecurity.getAuthorities();
         //生成jwt
-
     }
 }
