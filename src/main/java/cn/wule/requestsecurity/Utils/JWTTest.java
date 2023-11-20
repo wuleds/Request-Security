@@ -45,9 +45,12 @@ public class JWTTest
                 .withClaim("userName",userInfo.getUserName())
                 .withClaim("authList",userInfo.getAuthList());
 
-        for (Map.Entry<String, String> info:userInfo.getUserInfo().entrySet())
-        {
-            builder.withClaim(info.getKey(),info.getValue());
+        if(userInfo.getUserInfo() != null){
+            if(!userInfo.getUserInfo().isEmpty()) {
+                for (Map.Entry<String, String> info : userInfo.getUserInfo().entrySet()) {
+                    builder.withClaim(info.getKey(), info.getValue());
+                }
+            }
         }
         String jwt = builder.sign(Algorithm.HMAC256(secretKey));
         log.info("jwt:{}",jwt);

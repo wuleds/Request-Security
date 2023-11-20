@@ -33,6 +33,8 @@ public class WebSecurityConfig{
     @Resource
     private AppLogoutSuccessHandler appLogoutSuccessHandler;
     @Resource
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    @Resource
     private AppAccessDenyHandler appAccessDenyHandler;
     @Resource
     private ValidateCodeFilter validateCodeFilter;
@@ -41,13 +43,15 @@ public class WebSecurityConfig{
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //在用户名密码认证过滤器前添加过滤器
         http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class);
-        http.authorizeHttpRequests((authorize) -> authorize
+        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll()
+                /*(authorize) -> authorize
+                .requestMatchers("/**").permitAll()
                 .requestMatchers("/captcha").permitAll()
                 .requestMatchers("/root/**").hasAuthority("root:all")
                 .requestMatchers("/user/add").hasAuthority("user:add")
                 .requestMatchers("/user/delete").hasAuthority("user:del")
                 .anyRequest()
-                .authenticated());
+                .authenticated()*/);
         http.httpBasic(withDefaults());
         http.formLogin((formLogin) ->
                 formLogin
@@ -55,8 +59,9 @@ public class WebSecurityConfig{
                         .usernameParameter("userName") //配置登录用户名参数
                         .passwordParameter("password") //配置登录密码参数
                         .loginProcessingUrl("/login/doLogin") //单击登录的接口
-                        .failureForwardUrl("/toLogin") //登录失败的接口
+                        .failureForwardUrl("/toLogin").permitAll() //登录失败的接口
                         .successForwardUrl("/main") //登录成功的接口
+                        .successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
                         .permitAll());
         http.logout((logout) ->
                 logout

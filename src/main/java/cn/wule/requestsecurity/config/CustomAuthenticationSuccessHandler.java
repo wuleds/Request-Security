@@ -2,8 +2,13 @@ package cn.wule.requestsecurity.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/17 17:17
 
 import cn.hutool.jwt.JWTUtil;
+import cn.hutool.system.UserInfo;
+import cn.wule.requestsecurity.Utils.JWTTest;
 import cn.wule.requestsecurity.model.User;
+import cn.wule.requestsecurity.vo.HttpRequest;
+import cn.wule.requestsecurity.vo.JwtUserInfo;
 import cn.wule.requestsecurity.vo.UserSecurity;
+import com.auth0.jwt.JWT;
 import com.google.gson.Gson;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
@@ -16,6 +21,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,16 +35,34 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     @Resource
     private Gson gson;
     @Resource
-    private JWTUtil jwtUtil;
+    private JWTTest jwtUtil;
     
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         //从认证信息中获取用户信息
         UserSecurity userSecurity = (UserSecurity)authentication.getPrincipal();
         User user = userSecurity.getUser();
-        String userInfo = gson.toJson(user);
         //获取权限信息
         List<SimpleGrantedAuthority> authorities = (List<SimpleGrantedAuthority>) userSecurity.getAuthorities();
+        List<String> authList = authorities.stream().map(SimpleGrantedAuthority::getAuthority).toList();
         //生成jwt
+        JwtUserInfo userInfo = JwtUserInfo.builder().userName(user.getUserName()).useId(user.getUserId()).authList(authList).build();
+        String jwt = jwtUtil.createJWT(userInfo, new Date(), new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24));
+        HttpRequest<String> httpRequest = HttpRequest.<String>builder()
+                .code(200)
+                .message("生成jwt")
+                .data(jwt)
+                .build();
+        String jwtResult = gson.toJson(httpRequest);
+        //将jwt写入响应
+        writeJson(request,response,jwtResult);
+    }
+
+    private void writeJson(HttpServletRequest request,HttpServletResponse response,String jwtResult) throws IOException {
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json;charset=utf-8");
+        PrintWriter printWriter = response.getWriter();
+        printWriter.println(jwtResult);
+        printWriter.flush();
     }
 }
