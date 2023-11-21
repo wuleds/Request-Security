@@ -6,13 +6,8 @@ import cn.wule.requestsecurity.filter.ValidateCodeFilter;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,6 +31,8 @@ public class WebSecurityConfig{
     private AppLogoutSuccessHandler appLogoutSuccessHandler;
     @Resource
     private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+    @Resource
+    private CustomLogoutSuccessHandler customLogoutSuccessHandler;
     @Resource
     private JwtRequestFilter jwtRequestFilter;
     @Resource
@@ -70,9 +67,11 @@ public class WebSecurityConfig{
                         .successForwardUrl("/main") //登录成功的接口
                         .successHandler(customAuthenticationSuccessHandler) //登录成功的处理器
                         .permitAll());
-        http.logout((logout) ->
+        http.logout((logout)->
                 logout
-                        .logoutSuccessUrl("/toLogin") //退出登录状态后的接口
+                        .logoutUrl("/logout") //配置登出接口
+                        .logoutSuccessUrl("/toLogin") //登出成功的接口
+                        .logoutSuccessHandler(customLogoutSuccessHandler) //登出成功的处理器
                         .permitAll());
         http.exceptionHandling((exceptionHandling) -> exceptionHandling.accessDeniedHandler(appAccessDenyHandler));
 

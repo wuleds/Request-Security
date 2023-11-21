@@ -60,7 +60,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 .build();
         String jwtResult = gson.toJson(httpRequest);
         //将jwt写入redis，设置过期时间
-        stringRedisTemplate.opsForValue().set("jwt:"+user.getUserId(),jwt,issDate, TimeUnit.MILLISECONDS);
+        stringRedisTemplate.opsForValue().set("auth:"+jwt,gson.toJson(authentication),issDate, TimeUnit.MILLISECONDS);
         //将jwt写入响应
         writeJson(request,response,jwtResult);
     }

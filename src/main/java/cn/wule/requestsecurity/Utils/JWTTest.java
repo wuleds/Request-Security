@@ -85,12 +85,9 @@ public class JWTTest
             }
             jwtUserInfo.setUserInfo(userInfo);
         }
-
         jwtUserInfo.setUseId(userId);
         jwtUserInfo.setUserName(userName);
         jwtUserInfo.setAuthList(authList);
-
-
         return jwtUserInfo;
     }
 }

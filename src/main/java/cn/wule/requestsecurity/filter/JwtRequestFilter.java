@@ -12,6 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +35,8 @@ public class JwtRequestFilter extends OncePerRequestFilter
     private JWTTest jwtTest;
     @Resource
     private Gson gson;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
@@ -52,6 +55,17 @@ public class JwtRequestFilter extends OncePerRequestFilter
         }
 
         String jwt = strAuth.replace("bearer ", "");
+
+        //判断redis中是否存在jwt缓存
+        String jwtCache = stringRedisTemplate.opsForValue().get("auth:" + strAuth);
+        if(jwtCache == null) {
+            HttpRequest<String> httpRequest = HttpRequest.<String>builder()
+                    .code(401)
+                    .message("token已失效")
+                    .build();
+            writeJson(request,response,gson.toJson(httpRequest));
+            return;
+        }
         log.info("jwt:{}", jwt);
         if (!jwtTest.verifyJWT(jwt)) {
             HttpRequest<String> httpRequest = HttpRequest.<String>builder()
