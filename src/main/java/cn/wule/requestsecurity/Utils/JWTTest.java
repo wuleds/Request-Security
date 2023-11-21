@@ -61,14 +61,36 @@ public class JWTTest
     {
         try{
             JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
-            DecodedJWT decodedJWT = jwtVerifier.verify(jwt);
-            String userId = decodedJWT.getClaim("userId").asString();
-            String userName = decodedJWT.getClaim("userName").asString();
-            List<String> authList = decodedJWT.getClaim("authList").asList(String.class);
+            jwtVerifier.verify(jwt);
             return true;
         }catch (Exception e){
             log.error("jwt verify error:{}",e.getMessage());
         }
         return false;
+    }
+
+    public JwtUserInfo getJwtUserInfo(String jwt){
+        JwtUserInfo jwtUserInfo = new JwtUserInfo();
+        JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
+        DecodedJWT decodedJWT = jwtVerifier.verify(jwt);
+        String userId = decodedJWT.getClaim("userId").asString();
+        String userName = decodedJWT.getClaim("userName").asString();
+        List<String> authList = decodedJWT.getClaim("authList").asList(String.class);
+
+        Map<String ,Object > userInfoObj =  decodedJWT.getClaim("userInfo").asMap();
+        if(userInfoObj != null) {
+            Map<String, String> userInfo = new HashMap<>();
+            for (Map.Entry<String, Object> entry : userInfoObj.entrySet()) {
+                userInfo.put(entry.getKey(), entry.getValue().toString());
+            }
+            jwtUserInfo.setUserInfo(userInfo);
+        }
+
+        jwtUserInfo.setUseId(userId);
+        jwtUserInfo.setUserName(userName);
+        jwtUserInfo.setAuthList(authList);
+
+
+        return jwtUserInfo;
     }
 }

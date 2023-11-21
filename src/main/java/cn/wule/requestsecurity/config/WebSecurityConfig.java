@@ -1,6 +1,7 @@
 package cn.wule.requestsecurity.config;
 //汉江师范学院 数计学院 吴乐创建于2023/11/10 23:01
 
+import cn.wule.requestsecurity.filter.JwtRequestFilter;
 import cn.wule.requestsecurity.filter.ValidateCodeFilter;
 import jakarta.annotation.Resource;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -35,6 +37,8 @@ public class WebSecurityConfig{
     @Resource
     private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
     @Resource
+    private JwtRequestFilter jwtRequestFilter;
+    @Resource
     private AppAccessDenyHandler appAccessDenyHandler;
     @Resource
     private ValidateCodeFilter validateCodeFilter;
@@ -43,15 +47,18 @@ public class WebSecurityConfig{
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //在用户名密码认证过滤器前添加过滤器
         http.addFilterBefore(validateCodeFilter, UsernamePasswordAuthenticationFilter.class);
-        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll()
-                /*(authorize) -> authorize
-                .requestMatchers("/**").permitAll()
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        //不创建session
+        http.sessionManagement((sessionManagement) -> sessionManagement
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.authorizeHttpRequests(
+                (authorize) -> authorize
                 .requestMatchers("/captcha").permitAll()
                 .requestMatchers("/root/**").hasAuthority("root:all")
                 .requestMatchers("/user/add").hasAuthority("user:add")
                 .requestMatchers("/user/delete").hasAuthority("user:del")
                 .anyRequest()
-                .authenticated()*/);
+                .authenticated());
         http.httpBasic(withDefaults());
         http.formLogin((formLogin) ->
                 formLogin
@@ -65,7 +72,7 @@ public class WebSecurityConfig{
                         .permitAll());
         http.logout((logout) ->
                 logout
-                        .logoutSuccessUrl("/login/toLogin") //退出登录状态后的接口
+                        .logoutSuccessUrl("/toLogin") //退出登录状态后的接口
                         .permitAll());
         http.exceptionHandling((exceptionHandling) -> exceptionHandling.accessDeniedHandler(appAccessDenyHandler));
 
