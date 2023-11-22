@@ -57,7 +57,7 @@ public class JwtRequestFilter extends OncePerRequestFilter
         String jwt = strAuth.replace("bearer ", "");
 
         //判断redis中是否存在jwt缓存
-        String jwtCache = stringRedisTemplate.opsForValue().get("auth:" + strAuth);
+        String jwtCache = stringRedisTemplate.opsForValue().get("auth:" + jwt);
         if(jwtCache == null) {
             HttpRequest<String> httpRequest = HttpRequest.<String>builder()
                     .code(401)
